@@ -1,12 +1,9 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: MIT-0
-package io.aws.jwthewes.lambdaextension;
+package io.aws.jwthewes.helloworldvanillalambda.lambdaextension;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.cloud.function.adapter.aws.AWSLambdaUtils;
 
 /**
  * Entry point for external extension
@@ -14,15 +11,14 @@ import org.springframework.cloud.function.adapter.aws.AWSLambdaUtils;
 public class ExtensionMain implements Runnable {
 
     private final ObjectMapper objectMapper = new ObjectMapper();
-    private static final Logger LOGGER = LoggerFactory.getLogger(AWSLambdaUtils.class);
     private final String extension;
 
     public ExtensionMain() {
-        LOGGER.info("ExtensionMain constructor called");
-        LOGGER.info("starting registration of extension");
+        System.out.println("ExtensionMain constructor called");
+        System.out.println("starting registration of extension");
         // Register the extension for "INVOKE" events
         extension = ExtensionClient.registerExtension();
-        LOGGER.info("Extension registration complete, extensionID: " + extension);
+        System.out.println("Extension registration complete, extensionID: " + extension);
         registerJvmShutdownHook();
     }
 
@@ -32,7 +28,7 @@ public class ExtensionMain implements Runnable {
 
     @Override
     public void run() {
-        LOGGER.info("entering event loop");
+        System.out.println("entering event loop");
         //noinspection InfiniteLoopStatement
         while (true) {
             try {
@@ -52,13 +48,13 @@ public class ExtensionMain implements Runnable {
                                 handleShutDown();
                                 break;
                             default:
-                                LOGGER.error("Invalid event type received " + eventType);
+                                System.err.println("Invalid event type received " + eventType);
                                 break;
                         }
                     }
                 }
             } catch (Exception e) {
-                LOGGER.error("Error while processing extension -" + e.getMessage(), e);
+                System.err.println("Error while processing extension -" + e.getMessage());
             }
         }
     }
@@ -70,7 +66,7 @@ public class ExtensionMain implements Runnable {
         System.out.println("Shutting down the extension: " + System.currentTimeMillis());
         do {
             try {
-                LOGGER.info("Still alive..." + System.currentTimeMillis());
+                System.out.println("Still alive..." + System.currentTimeMillis());
                 Thread.sleep(5);
             } catch (InterruptedException e) {
                 System.err.println("Error while sleeping + " + e.getMessage());
@@ -85,7 +81,7 @@ public class ExtensionMain implements Runnable {
      * @param payload event payload
      */
     public static void handleInvoke(String payload) {
-        LOGGER.info("Handling invoke from extension " + payload);
+        System.out.println("Handling invoke from extension " + payload);
     }
 
 }
