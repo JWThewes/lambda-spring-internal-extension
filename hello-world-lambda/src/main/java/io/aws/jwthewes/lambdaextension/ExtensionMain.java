@@ -4,6 +4,9 @@ package io.aws.jwthewes.lambdaextension;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.cloud.function.adapter.aws.AWSLambdaUtils;
 
 /**
  * Entry point for external extension
@@ -11,13 +14,25 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 public class ExtensionMain implements Runnable {
 
     private final ObjectMapper objectMapper = new ObjectMapper();
+    private static final Logger LOGGER = LoggerFactory.getLogger(AWSLambdaUtils.class);
+    private final String extension;
+
+    public ExtensionMain() {
+        LOGGER.info("ExtensionMain constructor called");
+        LOGGER.info("starting registration of extension");
+        // Register the extension for "INVOKE" events
+        extension = ExtensionClient.registerExtension();
+        LOGGER.info("Extension registration complete, extensionID: " + extension);
+    }
+
+    private void registerJvmShutdownHook() {
+        Runtime.getRuntime().addShutdownHook(new Thread(ExtensionMain::handleShutDown));
+    }
 
     @Override
     public void run() {
-        // Register the extension for "INVOKE" and "SHUTDOWN" events
-        final String extension = ExtensionClient.registerExtension();
-        System.out.println("Extension registration complete, extensionID: " + extension);
-
+        LOGGER.info("entering event loop");
+        registerJvmShutdownHook();
         //noinspection InfiniteLoopStatement
         while (true) {
             try {
@@ -32,13 +47,12 @@ public class ExtensionMain implements Runnable {
                         switch (eventType) {
                             case "INVOKE" -> handleInvoke(response);
                             case "SHUTDOWN" -> handleShutDown();
-                            default -> System.err.println("Invalid event type received " + eventType);
+                            default -> LOGGER.error("Invalid event type received " + eventType);
                         }
                     }
                 }
             } catch (Exception e) {
-                System.out.println("Error while processing extension -" + e.getMessage());
-                e.printStackTrace();
+                LOGGER.error("Error while processing extension -" + e.getMessage(), e);
             }
         }
     }
@@ -49,12 +63,7 @@ public class ExtensionMain implements Runnable {
     private static void handleShutDown() {
         System.out.println("Shutting down the extension: " + System.currentTimeMillis());
         do {
-            try {
-                System.out.println("Still alive..." + System.currentTimeMillis());
-                Thread.sleep(10);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
+            LOGGER.info("Still alive..." + System.currentTimeMillis());
         } while (true);
 
     }
@@ -65,7 +74,7 @@ public class ExtensionMain implements Runnable {
      * @param payload event payload
      */
     public static void handleInvoke(String payload) {
-        System.out.println("Handling invoke from extension " + payload);
+        LOGGER.info("Handling invoke from extension " + payload);
     }
 
 }

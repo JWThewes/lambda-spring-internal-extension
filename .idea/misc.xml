@@ -6,6 +6,7 @@
       <list>
         <option value="$PROJECT_DIR$/hello-world-lambda/pom.xml" />
         <option value="$PROJECT_DIR$/lambda-agent/pom.xml" />
+        <option value="$PROJECT_DIR$/hello-world-vanilla-lambda/pom.xml" />
       </list>
     </option>
     <option name="ignoredFiles">
